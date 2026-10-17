@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bitcoin Cycle</title>
+<meta name="description" content="Bitcoin daily since 2010 with a market-mood index, the four-year halving clock, and backtests of both.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* ---------- tokens: light is the base, dark redefines tokens only ---------- */
+:root {
+  --paper: #FFFFFF; --raised: #FFFFFF; --band: #FBF8F4;
+  --ink: #1C1408; --ink-soft: #3F3A33; --ink-faint: #6E675D;
+  --rule: #ECE6DD; --rule-strong: #D9D0C2;
+  --accent: #C2410C; --accent-ink: #9A3412; --accent-tint: #FFF6ED; --accent-line: #FED7AA;
+  --shadow: 0 1px 2px rgba(28,20,8,.04), 0 1px 3px rgba(28,20,8,.06);
+  --f-text: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --main: 1240px; --bar: 56px;
+
+  --surface-1: #ffffff; --ink-1: #1c1408; --ink-2: #57524a; --muted: #7a7366;
+  --grid: #eee8df; --baseline: #d6ccbd; --border: rgba(28,20,8,.10);
+  --series-1: #e8800c; --up: #0a7a2f; --down: #d03b3b;
+  --line-ma: #2563eb; --line-maw: #7c3aed;
+  --cat-halving: #e8800c; --cat-crisis: #e34948; --cat-policy: #6d5bd0; --cat-adoption: #1baf7a;
+  --cyc-1: #6d5bd0; --cyc-2: #1baf7a; --cyc-3: #2563eb; --cyc-4: #e8800c; --cyc-bull: #1baf7a;
+  --cyc-bull-fill: rgba(27,175,122,.08); --cyc-trough-fill: rgba(208,59,59,.10);
+  --band-xfear: #c62828; --band-fear: #ec6a2c; --band-neutral: #9a9285; --band-greed: #4caf50; --band-xgreed: #0a7a2f;
+  --band-bg: #faf7f2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E0B07; --raised: #16120C; --band: #1B160F;
+    --ink: #F2ECE3; --ink-soft: #D4CCC0; --ink-faint: #9C9385;
+    --rule: #2A231A; --rule-strong: #3A3124;
+    --accent: #FB923C; --accent-ink: #FDBA74; --accent-tint: #24170A; --accent-line: #7C2D12;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+    --surface-1: #16120c; --ink-1: #f2ece3; --ink-2: #c9c0b3; --muted: #958b7c;
+    --grid: #2a231a; --baseline: #44392a; --border: rgba(255,255,255,.10);
+    --series-1: #f7931a; --up: #22c55e; --down: #f06b6b;
+    --line-ma: #60a5fa; --line-maw: #a78bfa;
+    --cat-halving: #f7931a; --cat-crisis: #f06b6b; --cat-policy: #9a8cf0; --cat-adoption: #2bc48c;
+    --cyc-1: #9a8cf0; --cyc-2: #2bc48c; --cyc-3: #60a5fa; --cyc-4: #f7931a; --cyc-bull: #2bc48c;
+    --cyc-bull-fill: rgba(43,196,140,.09); --cyc-trough-fill: rgba(240,107,107,.13);
+    --band-xfear: #f05252; --band-fear: #f08a4b; --band-neutral: #8f877a; --band-greed: #5ccf6a; --band-xgreed: #22c55e;
+    --band-bg: #120f0a;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E0B07; --raised: #16120C; --band: #1B160F;
+  --ink: #F2ECE3; --ink-soft: #D4CCC0; --ink-faint: #9C9385;
+  --rule: #2A231A; --rule-strong: #3A3124;
+  --accent: #FB923C; --accent-ink: #FDBA74; --accent-tint: #24170A; --accent-line: #7C2D12;
+  --shadow: 0 1px 2px rgba(0,0,0,.4);
+  --surface-1: #16120c; --ink-1: #f2ece3; --ink-2: #c9c0b3; --muted: #958b7c;
+  --grid: #2a231a; --baseline: #44392a; --border: rgba(255,255,255,.10);
+  --series-1: #f7931a; --up: #22c55e; --down: #f06b6b;
+  --line-ma: #60a5fa; --line-maw: #a78bfa;
+  --cat-halving: #f7931a; --cat-crisis: #f06b6b; --cat-policy: #9a8cf0; --cat-adoption: #2bc48c;
+  --cyc-1: #9a8cf0; --cyc-2: #2bc48c; --cyc-3: #60a5fa; --cyc-4: #f7931a; --cyc-bull: #2bc48c;
+  --cyc-bull-fill: rgba(43,196,140,.09); --cyc-trough-fill: rgba(240,107,107,.13);
+  --band-xfear: #f05252; --band-fear: #f08a4b; --band-neutral: #8f877a; --band-greed: #5ccf6a; --band-xgreed: #22c55e;
+  --band-bg: #120f0a;
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink-soft); font-family: var(--f-text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent-ink); text-decoration-color: var(--accent-line); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { color: var(--ink); margin: 0; font-weight: 650; letter-spacing: -.015em; }
+p { margin: 0; }
+b, strong { color: var(--ink-1); font-weight: 600; }
+[hidden] { display: none !important; }
+
+.topbar { position: sticky; top: 0; z-index: 40; height: var(--bar); background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: saturate(160%) blur(10px); border-bottom: 1px solid var(--rule); box-shadow: inset 0 3px 0 var(--accent); }
+.topbar-in { height: 100%; padding: 0 24px; display: flex; align-items: center; gap: 20px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 650; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.brand .logo { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #f7931a, #c2410c); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+#themeBtn { margin-left: auto; font: 500 13px var(--f-text); color: var(--ink-soft); background: var(--raised); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+#themeBtn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.layout { background: linear-gradient(180deg, var(--accent-tint) 0, var(--paper) 520px) no-repeat; }
+.wrap { max-width: var(--main); margin: 0 auto; padding: 0 24px; }
+@media (max-width: 720px) { .topbar-in, .wrap { padding: 0 16px; } }
+.section { padding: 40px 0 64px; }
+.role { font-size: clamp(20px, 2.6vw, 26px); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--accent-ink); }
+.embed-cap { font-size: 14px; color: var(--ink-faint); max-width: 76ch; margin-top: 8px; }
+
+/* ---------- dashboard (scoped to #btc-app; sizes by container) ---------- */
+#btc-app { container: btc / inline-size; margin-top: 18px; position: relative; font-size: 14px; line-height: 1.45; color: var(--ink-1); }
+#btc-app .loading { padding: 48px 0; text-align: center; color: var(--ink-faint); font-size: 15px; }
+#btc-app.ready .loading { display: none; }
+#btc-app:not(.ready) > :not(.loading) { visibility: hidden; }
+#btc-app .hint { color: var(--muted); font-size: 12px; }
+#btc-app .pos { color: var(--up); } #btc-app .neg { color: var(--down); }
+
+#btc-app .tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+@container btc (max-width: 1000px) { #btc-app .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container btc (max-width: 560px) { #btc-app .tiles { grid-template-columns: 1fr 1fr; } }
+#btc-app .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; min-width: 0; }
+#btc-app .tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+#btc-app .tile .v { font-size: 22px; font-weight: 650; margin-top: 2px; font-variant-numeric: tabular-nums; }
+#btc-app .tile .s { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+
+#btc-app .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 10px 0 12px; }
+#btc-app .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-1); }
+#btc-app .seg button { border: 0; background: none; color: var(--ink-2); padding: 6px 11px; font: inherit; font-size: 12.5px; cursor: pointer; border-right: 1px solid var(--border); }
+#btc-app .seg button:last-child { border-right: 0; }
+#btc-app .seg button:hover { color: var(--ink-1); }
+#btc-app .seg button[aria-pressed="true"] { background: var(--series-1); color: #fff; }
+#btc-app .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+#btc-app .chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 1px solid var(--border); background: var(--surface-1); color: var(--ink-2); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 12.5px; }
+#btc-app .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+#btc-app .chip[aria-pressed="false"] { opacity: .45; }
+#btc-app .chip[aria-pressed="false"] .dot { background: var(--muted); }
+
+#btc-app .card, #btc-app .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; }
+#btc-app .card { padding: 12px 12px 8px; }
+#btc-app .chart-head { display: flex; align-items: baseline; gap: 8px; padding: 0 4px 6px; flex-wrap: wrap; }
+#btc-app .chart-head .nm { font-weight: 650; font-size: 15px; }
+#btc-app .chart-wrap { position: relative; height: 440px; touch-action: pan-y; cursor: crosshair; user-select: none; }
+#btc-app canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#btc-app .mood-wrap { position: relative; height: 70px; margin-top: 2px; }
+@container btc (max-width: 600px) { #btc-app .chart-wrap { height: 330px; } #btc-app .tile .v { font-size: 19px; } }
+#btc-app .tooltip { position: absolute; pointer-events: none; display: none; z-index: 3; min-width: 160px; max-width: 280px; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.18); padding: 8px 10px; font-size: 12px; }
+#btc-app .tooltip .d { color: var(--ink-2); }
+#btc-app .tooltip .p { font-size: 16px; font-weight: 650; }
+#btc-app .tooltip .r { color: var(--ink-2); margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+#btc-app .tooltip .ev { display: flex; gap: 6px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--grid); }
+#btc-app .tooltip .ev .key { width: 14px; height: 0; border-top: 3px solid var(--c); transform: translateY(-3px); flex: none; }
+#btc-app .sw { display: inline-block; width: 14px; height: 3px; border-radius: 2px; flex: none; }
+#btc-app .sw.box { height: 10px; width: 14px; border: 1px solid var(--border); }
+
+#btc-app .ev-detail { display: none; margin-top: 10px; border: 1px solid var(--border); border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 6%, var(--surface-1)); border-radius: 8px; padding: 10px 12px; position: relative; }
+#btc-app .ev-detail .dt { font-size: 12px; color: var(--ink-2); }
+#btc-app .ev-detail .tt { font-weight: 650; margin: 1px 0 3px; }
+#btc-app .ev-detail .bb { font-size: 13px; color: var(--ink-2); }
+#btc-app .ev-detail .x { position: absolute; top: 6px; right: 8px; border: 0; background: none; color: var(--muted); font-size: 15px; cursor: pointer; }
+
+#btc-app .panel { margin-top: 14px; padding: 16px 18px 14px; }
+#btc-app .panel > h2 { font-size: 17px; }
+#btc-app .panel-sub { color: var(--ink-2); font-size: 13.5px; margin-top: 4px; max-width: 92ch; }
+#btc-app .panel h3 { font-size: 13px; font-weight: 650; margin: 0 0 8px; letter-spacing: 0; }
+#btc-app .grid2 { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.4fr); gap: 24px; margin-top: 14px; }
+@container btc (max-width: 860px) { #btc-app .grid2 { grid-template-columns: minmax(0, 1fr); } }
+#btc-app .mood-big { display: flex; align-items: baseline; gap: 10px; }
+#btc-app .mood-num { font-size: 40px; font-weight: 700; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+#btc-app .mood-lbl { font-size: 16px; font-weight: 650; color: var(--c); }
+#btc-app .mood-scale { position: relative; display: flex; height: 8px; margin: 10px 0 14px; }
+#btc-app .mood-scale span[class^="seg-"] { flex: 1; background: var(--c); opacity: .6; }
+#btc-app .mood-scale span.seg-xfear { border-radius: 4px 0 0 4px; }
+#btc-app .mood-scale span.seg-xgreed { border-radius: 0 4px 4px 0; }
+#btc-app .mood-scale .pin { position: absolute; top: -4px; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: var(--ink-1); box-shadow: 0 0 0 2px var(--surface-1); }
+#btc-app .mood-comps { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+#btc-app .mood-comps li { display: grid; grid-template-columns: 1fr 30px; column-gap: 8px; align-items: center; }
+#btc-app .mood-comps .ct { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+#btc-app .mood-comps .cn { font-weight: 600; }
+#btc-app .mood-comps .cv { color: var(--ink-2); }
+#btc-app .mood-comps .cbar { height: 6px; background: var(--grid); border-radius: 3px; overflow: hidden; }
+#btc-app .mood-comps .cbar span { display: block; height: 100%; border-radius: 3px; }
+#btc-app .mood-comps .cp { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+#btc-app .note { margin-top: 10px; line-height: 1.5; }
+#btc-app .tw { overflow-x: auto; }
+#btc-app table.t { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+#btc-app table.t th, #btc-app table.t td { padding: 5px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; vertical-align: top; }
+#btc-app table.t thead th { color: var(--ink-2); font-weight: 600; font-size: 11.5px; }
+#btc-app table.t th:first-child { text-align: left; }
+#btc-app table.t tbody th { font-weight: 600; }
+#btc-app table.t td small { display: block; font-size: 10.5px; color: var(--muted); }
+#btc-app table.t .key { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-right: 6px; }
+#btc-app table.t tr.now th, #btc-app table.t tr.now td { background: color-mix(in srgb, var(--series-1) 10%, transparent); }
+#btc-app table.t th.nowc { color: var(--accent-ink); }
+#btc-app table.t tr.all th, #btc-app table.t tr.all td { color: var(--ink-2); border-bottom: 0; }
+#btc-app .rk { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; font-weight: 600; color: var(--ink-1); cursor: pointer; padding: 0; }
+#btc-app .rk[aria-pressed="false"] { opacity: .45; }
+#btc-app .cyc-wrap { position: relative; height: 340px; margin-top: 12px; cursor: crosshair; touch-action: pan-y; }
+#btc-app .rule-wrap { position: relative; height: 260px; margin-top: 12px; }
+#btc-app .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+#btc-app .lgd { display: inline-flex; align-items: center; gap: 6px; }
+#btc-app .read { margin-top: 14px; font-size: 14px; line-height: 1.6; max-width: 96ch; color: var(--ink-2); }
+#btc-app .verdict { margin-top: 14px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+#btc-app .verdict div { border: 1px solid var(--border); border-left: 3px solid var(--c); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
+#btc-app .verdict b { display: block; color: var(--ink-1); font-size: 13.5px; margin-bottom: 2px; }
+#btc-app details.method { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+#btc-app details.method summary { cursor: pointer; color: var(--ink-1); font-weight: 600; }
+#btc-app details.method div { display: grid; gap: 8px; margin-top: 8px; max-width: 86ch; line-height: 1.55; }
+#btc-app .ev-panel { margin-top: 14px; }
+#btc-app .ev-panel h2 { font-size: 15px; margin: 0 0 8px; }
+#btc-app .ev-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 2px; }
+#btc-app .ev-card { display: block; text-align: left; font: inherit; cursor: pointer; background: var(--surface-1); border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 8px; padding: 8px 10px; color: var(--ink-1); }
+#btc-app .ev-card:hover { border-color: var(--c); }
+#btc-app .ev-card.sel { box-shadow: 0 0 0 2px var(--c); }
+#btc-app .ev-card .dt { font-size: 11px; color: var(--muted); }
+#btc-app .ev-card .tt { font-weight: 600; font-size: 13px; margin: 1px 0 2px; }
+#btc-app .ev-card .bb { font-size: 12px; color: var(--ink-2); }
+#btc-app .foot { margin-top: 22px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top"><span class="logo" aria-hidden="true">₿</span><span>Bitcoin Cycle</span></a>
+    <button id="themeBtn" type="button" aria-label="Switch colour theme">Dark mode</button>
+  </div>
+</div>
+
+<div class="layout">
+<main class="wrap" id="top">
+<section class="section">
+  <span class="role">Bitcoin dashboard</span>
+  <p class="embed-cap">Scroll on the chart to zoom, drag to pan, hover for the mood and the halving clock on any day.
+    Green bands are the 18 months after each halving; the red band is where past bear markets bottomed, timed from this cycle's peak.</p>
+
+  <div id="btc-app" aria-label="Bitcoin cycle dashboard">
+    <p class="loading" id="btc-loading">Loading sixteen years of prices…</p>
+    <div class="tiles" id="btc-tiles"></div>
+
+    <div class="controls">
+      <div class="seg" id="btc-ranges" role="group" aria-label="Date range"></div>
+      <div class="seg" id="btc-scaleSeg" role="group" aria-label="Scale">
+        <button type="button" data-scale="lin">Linear</button><button type="button" data-scale="log">Log</button>
+      </div>
+      <div class="chips" id="btc-indChips" role="group" aria-label="Overlays"></div>
+      <div class="chips" id="btc-catChips" role="group" aria-label="Event categories"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-head"><span class="nm">Bitcoin, USD</span><span class="hint">daily close, UTC</span><span style="flex:1"></span><span class="hint" id="btc-rangeLabel"></span></div>
+      <div class="chart-wrap" id="btc-chartWrap">
+        <canvas id="btc-base"></canvas><canvas id="btc-overlay"></canvas>
+        <div class="tooltip" id="btc-tooltip"></div>
+      </div>
+      <div class="mood-wrap"><canvas id="btc-moodCanvas"></canvas></div>
+    </div>
+    <div class="ev-detail" id="btc-evDetail">
+      <button class="x" type="button" aria-label="Clear selection" id="btc-evClose">✕</button>
+      <div class="dt"></div><div class="tt"></div><div class="bb"></div>
+    </div>
+
+    <!-- four-year cycle -->
+    <section class="panel" aria-labelledby="btc-cycTitle">
+      <h2 id="btc-cycTitle">The four-year cycle</h2>
+      <p class="panel-sub">Every cycle rebased to 1× on its halving day. Hover to read each cycle at the same point on the clock.</p>
+      <div class="cyc-wrap" id="btc-cycWrap"><canvas id="btc-cycCanvas"></canvas><div class="tooltip" id="btc-cycTip"></div></div>
+      <div class="legend" id="btc-cycLegend"></div>
+      <p class="read" id="btc-cycNow"></p>
+      <div class="tw" style="margin-top:12px"><table class="t" id="btc-cycTable"></table></div>
+      <p class="hint note">Peak: highest close within two years of the halving. Trough: lowest close within two years of that peak.</p>
+    </section>
+
+    <!-- mood -->
+    <section class="panel" aria-labelledby="btc-moodTitle">
+      <h2 id="btc-moodTitle">Market mood <span class="hint" id="btc-moodAsOf"></span></h2>
+      <div class="grid2">
+        <div>
+          <div id="btc-moodNow"></div>
+          <ul class="mood-comps" id="btc-moodComps"></ul>
+          <p class="hint note">Each bar is today's reading ranked against the last three years (100 = the most
+            risk-on reading in that time). The mood is their average.</p>
+        </div>
+        <div>
+          <h3>What bitcoin did next, by mood <span class="hint" id="btc-moodSince"></span></h3>
+          <div class="tw"><table class="t" id="btc-moodTable"></table></div>
+          <p class="hint note">Median price change over the next 1, 3, 6 and 12 months, and how often it was higher.
+            <b>Spells</b> counts separate visits to each band, the real sample size. <b>Years higher</b> averages the
+            12-month result within each calendar year first, so one long boom or bust can't dominate.</p>
+        </div>
+      </div>
+      <h3 style="margin-top:18px">The same bands, split by where the halving clock was <span class="hint">median 12-month return</span></h3>
+      <div class="tw"><table class="t" id="btc-phaseTable"></table></div>
+    </section>
+
+    <!-- rules -->
+    <section class="panel" aria-labelledby="btc-ruleTitle">
+      <h2 id="btc-ruleTitle">Does any of it trade? <span class="hint" id="btc-ruleSince"></span></h2>
+      <p class="panel-sub">Growth of $1 from the first halving, log scale. Signal at the close, trade the next day, no costs, cash earns nothing. Click a rule to hide it.</p>
+      <div class="rule-wrap"><canvas id="btc-ruleCanvas"></canvas></div>
+      <div class="tw" style="margin-top:12px"><table class="t" id="btc-ruleTable"></table></div>
+      <div class="verdict">
+        <div style="--c:var(--cat-halving)"><b>The cycle held, four times out of four</b>Peaks came 371–546 days after the halving and every completed bear market fell 77–85%. Sitting out from month 18 to the next run-up beat buy-and-hold while holding coins less than half the time.</div>
+        <div style="--c:var(--band-xfear)"><b>Fear is a buy, greed is not a sell</b>Extreme fear was followed by a higher price a year later in every year it showed up. Extreme greed came before the <i>biggest</i> gains: in bitcoin, greed is momentum. Selling it was the worst rule here.</div>
+        <div style="--c:var(--muted)"><b>Four cycles is not a sample</b>The multiples shrink every cycle (92×, 30×, 8×, 2×) and the theory is public, so it can be front-run. Timings set from the first two cycles missed the next two peaks by about three months.</div>
+      </div>
+    </section>
+
+    <!-- trend -->
+    <section class="panel" aria-labelledby="btc-trendTitle">
+      <h2 id="btc-trendTitle">Trend</h2>
+      <p class="read" id="btc-trendNow" style="margin-top:6px"></p>
+      <div class="tw" style="margin-top:10px;max-width:620px"><table class="t" id="btc-trendTable"></table></div>
+      <details class="method">
+        <summary>How the mood is built, and how far to trust it</summary>
+        <div>
+          <p><b>Five inputs</b>, each taken at the daily close and using only data known that day: price against its
+            200-day average; MVRV, the market cap over the realised cap (every coin valued at the price it last moved);
+            active addresses, 30-day average against the one-year average; distance below the 52-week high; and
+            30-day realised volatility, inverted. Each is ranked against its own last three years, and the five ranks are
+            averaged into a 0–100 score.</p>
+          <p><b>Same build as the STI dashboard</b>, with two swaps: the STI's breadth and new-highs inputs need 30
+            member stocks, which bitcoin doesn't have, so on-chain valuation and network activity take their places.
+            Every window is in calendar days because bitcoin never closes.</p>
+          <p><b>Limits.</b> Four halvings, five spells per extreme band, and an asset that went up 900,000× over the sample,
+            so almost any long rule looks good. Treat the tables as base rates, not a model. Not investment advice.
+            <a href="https://github.com/fang89/Bitcoin-Cycle/blob/main/METHODOLOGY.md">Full methodology and tests</a>.</p>
+        </div>
+      </details>
+    </section>
+
+    <div class="ev-panel">
+      <h2>Key events <span class="hint" id="btc-evCount"></span></h2>
+      <div class="ev-list" id="btc-evList"></div>
+    </div>
+    <p class="foot">Data: Coin Metrics community API (price, MVRV, active addresses), <span id="btc-genDate"></span> ·
+      Events curated from public reporting · Not investment advice.</p>
+  </div>
+</section>
+</main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var root = document.documentElement, btn = document.getElementById("themeBtn");
+  try { var saved = localStorage.getItem("btccycle-theme"); if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved); } catch (e) { /* storage blocked */ }
+  function isDark() { return root.getAttribute("data-theme") === "dark" || (!root.hasAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+  function label() { btn.textContent = isDark() ? "Light mode" : "Dark mode"; }
+  btn.addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("btccycle-theme", next); } catch (e) { /* ignore */ }
+    label();
+  });
+  label();
+  // a new query string every 10 minutes, so neither the browser nor GitHub's CDN serves stale prices
+  var v = Math.floor(Date.now() / 600000);
+  ["data.js", "indicators.js", "app.js"].forEach(function (f) {
+    var s = document.createElement("script");
+    s.src = f + "?v=" + v; s.async = false;
+    s.onerror = function () { document.getElementById("btc-loading").textContent = "Could not load the data."; };
+    document.body.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>
