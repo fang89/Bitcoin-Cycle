@@ -86,7 +86,7 @@ b, strong { color: var(--ink-1); font-weight: 600; }
 .tabs a { display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 500; color: var(--ink-faint); text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tabs a:hover { color: var(--ink); }
 .tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
-@media (max-width: 640px) { .brand span:last-child { display: none; } .topbar-in { gap: 8px; } .tabs a { padding: 0 8px; font-size: 13px; } #themeBtn { padding: 6px 8px; } }
+@media (max-width: 640px) { .brand span:last-child { display: none; } .topbar-in { gap: 8px; } .tabs { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; } .tabs::-webkit-scrollbar { display: none; } .tabs a { padding: 0 7px; font-size: 13px; } .tabs .lg { display: none; } #themeBtn { padding: 6px 8px; flex: none; } }
 #themeBtn { margin-left: auto; white-space: nowrap; font: 500 13px var(--f-text); color: var(--ink-soft); background: var(--raised); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
 #themeBtn:hover { color: var(--ink); border-color: var(--ink-faint); }
 .layout { background: linear-gradient(180deg, var(--accent-tint) 0, var(--paper) 520px) no-repeat; }
@@ -214,7 +214,8 @@ b, strong { color: var(--ink-1); font-weight: 600; }
     <a class="brand" href="#top"><span class="logo" aria-hidden="true">₿</span><span>Bitcoin Cycle</span></a>
     <nav class="tabs" aria-label="Pages">
       <a href="./" aria-current="page">Dashboard</a>
-      <a href="satoshi.html">Satoshi's code</a>
+      <a href="satoshi.html">Satoshi<span class="lg">'s code</span></a>
+      <a href="ethereum.html">Ethereum<span class="lg">'s code</span></a>
     </nav>
     <button id="themeBtn" type="button" aria-label="Switch colour theme">Dark mode</button>
   </div>

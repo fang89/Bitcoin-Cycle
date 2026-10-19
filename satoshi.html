@@ -81,7 +81,7 @@ button { font: inherit; }
 .tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
 #themeBtn { margin-left: auto; font: 500 13px var(--f-text); color: var(--ink-soft); background: var(--raised); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
 #themeBtn:hover { color: var(--ink); border-color: var(--ink-faint); }
-@media (max-width: 640px) { .brand span:last-child { display: none; } .topbar-in { gap: 8px; } .tabs a { padding: 0 8px; font-size: 13px; } #themeBtn { padding: 6px 8px; } }
+@media (max-width: 640px) { .brand span:last-child { display: none; } .topbar-in { gap: 8px; } .tabs { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; } .tabs::-webkit-scrollbar { display: none; } .tabs a { padding: 0 7px; font-size: 13px; } .tabs .lg { display: none; } #themeBtn { padding: 6px 8px; flex: none; } }
 
 .wrap { max-width: var(--main); margin: 0 auto; padding: 0 24px; }
 @media (max-width: 720px) { .topbar-in, .wrap { padding: 0 16px; } }
@@ -324,7 +324,8 @@ input[type=range] { width: 100%; accent-color: var(--btc); }
     <a class="brand" href="./"><span class="logo" aria-hidden="true">₿</span><span>Bitcoin Cycle</span></a>
     <nav class="tabs" aria-label="Pages">
       <a href="./">Dashboard</a>
-      <a href="satoshi.html" aria-current="page">Satoshi's code</a>
+      <a href="satoshi.html" aria-current="page">Satoshi<span class="lg">'s code</span></a>
+      <a href="ethereum.html">Ethereum<span class="lg">'s code</span></a>
     </nav>
     <button id="themeBtn" type="button" aria-label="Switch colour theme">Dark mode</button>
   </div>
